@@ -1,62 +1,46 @@
-<?php
-/*****************************************************************************************
- 　ぐるなびWebサービスのレストラン検索APIで緯度経度検索を実行しパースするプログラム
- 　注意：緯度、経度、範囲の値は固定で入れています。
- 　　　　アクセスキーはユーザ登録時に発行されたキーを指定してください。
-*****************************************************************************************/
- 
-//エンドポイントのURIとフォーマットパラメータを変数に入れる
-$uri   = "http://api.gnavi.co.jp/RestSearchAPI/20150630/";
-//APIアクセスキーを変数に入れる
-$acckey= "input your accesskey";
-//返却値のフォーマットを変数に入れる
-$format= "json";
-//緯度・経度、範囲を変数に入れる
-//緯度経度は日本測地系で日比谷シャンテのもの。範囲はrange=1で300m以内を指定している。
-$lat   = 35.670083;
-$lon   = 139.763267;
-$range = 1;
- 
-//URL組み立て
-$url  = sprintf("%s%s%s%s%s%s%s%s%s%s%s", $uri, "?format=", $format, "&keyid=", $acckey, "&latitude=", $lat,"&longitude=",$lon,"&range=",$range);
-//API実行
-$json = file_get_contents($url);
-//取得した結果をオブジェクト化
-$obj  = json_decode($json);
- 
-//結果をパース
-//トータルヒット件数、店舗番号、店舗名、最寄の路線、最寄の駅、最寄駅から店までの時間、店舗の小業態を出力
-foreach((array)$obj as $key => $val){
-   if(strcmp($key, "total_hit_count" ) == 0 ){
-       echo "total:".$val."\n";
-   }
- 
-   if(strcmp($key, "rest") == 0){
-       foreach((array)$val as $restArray){
-            if(checkString($restArray->{'id'}))   echo $restArray->{'id'}."\t";
-            if(checkString($restArray->{'name'})) echo $restArray->{'name'}."\t";
-            if(checkString($restArray->{'access'}->{'line'}))    echo (string)$restArray->{'access'}->{'line'}."\t";
-            if(checkString($restArray->{'access'}->{'station'})) echo (string)$restArray->{'access'}->{'station'}."\t";
-            if(checkString($restArray->{'access'}->{'walk'}))    echo (string)$restArray->{'access'}->{'walk'}."分\t";
- 
-            foreach((array)$restArray->{'code'}->{'category_name_s'} as $v){
-                if(checkString($v)) echo $v."\t";
-            }
-            echo "\n";
-       }
- 
-   }
+<!DOCTYPE html> 
+<html lang="ja"> 
+<head> 
+<meta charset=utf-8>
+<script>
+//ユーザーの現在の位置情報を取得
+navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+
+/***** ユーザーの現在の位置情報を取得 *****/
+function successCallback(position) {
+  var gl_text = "緯度：" + position.coords.latitude + "<br>";
+    gl_text += "経度：" + position.coords.longitude + "<br>";
+    gl_text += "高度：" + position.coords.altitude + "<br>";
+    gl_text += "緯度・経度の誤差：" + position.coords.accuracy + "<br>";
+    gl_text += "高度の誤差：" + position.coords.altitudeAccuracy + "<br>";
+    gl_text += "方角：" + position.coords.heading + "<br>";
+    gl_text += "速度：" + position.coords.speed + "<br>";
+  document.getElementById("show_result").innerHTML = gl_text;
 }
- 
-//文字列であるかをチェック
-function checkString($input)
-{
- 
-    if(isset($input) && is_string($input)) {
-        return true;
-    }else{
-        return false;
-    }
- 
+
+/***** 位置情報が取得できない場合 *****/
+function errorCallback(error) {
+  var err_msg = "";
+  switch(error.code)
+  {
+    case 1:
+      err_msg = "位置情報の利用が許可されていません";
+      break;
+    case 2:
+      err_msg = "デバイスの位置が判定できません";
+      break;
+    case 3:
+      err_msg = "タイムアウトしました";
+      break;
+  }
+  document.getElementById("show_result").innerHTML = err_msg;
+  //デバッグ用→　document.getElementById("show_result").innerHTML = error.message;
 }
-?>
+</script>
+<title>Geolocation API　サンプル</title>
+</head>
+<body>
+<p>あなたの現在位置</p>
+<div id="show_result"></div>
+</body> 
+</html>
