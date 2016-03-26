@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>現在位置からぐるなび検索</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <h1>現在位置からぐるなび検索</h1>
+      </div>
+      <h3>検索範囲は？<br></h3>
+      <form name="serch">
+        <select id="Select1">
+          <option>300m</option>
+          <option>500m</option>
+          <option>1000m</option>
+          <option>2000m</option>
+          <option>3000m</option>
+        </select>
+      </form><br>
+      <button  type="button" onclick="run()">検索</button>
+      <hr>
+      <ul id="result">
+      </ul>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script>
+      function run() {
+        //ラジオボタンの処理
+        var ran;
+        selindex = document.serch.Select1.selectedIndex;
+        switch(selindex){
+          case 0:
+            ran=1;
+            break;
+          case 1:
+            ran=2;
+            break;
+          case 2:
+            ran=3;
+            break;
+          case 3:
+            ran=4;
+            break;
+          case 4:
+            ran=5;
+            break;
+        }
+        // Geolocation APIの呼び出し
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          // Geolocation APIのコールバック関数
+          // console.log(pos);
+          var lat = pos.coords.latitude;
+          var lng = pos.coords.longitude;
+          // ぐるなびAPIの呼び出し
+          $.get(
+            'http://api.gnavi.co.jp/ver1/RestSearchAPI/',
+            {
+              keyid: '3204d58b6de6d673790f0c547dbd7c3c',
+              format: 'json',
+              latitude: lat,
+              longitude: lng,
+              range: ran
+            },
+            function(response) {
+              // ぐるなびAPIのコールバック関数
+              var results = response.rest
+              $('#result').empty();
+              for (var i = 0; i < results.length; i++) {
+                var result = results[i];
+                $('<li><a></a></li>')
+                  .find('a')
+                    .text(result.name)
+                    .attr('href', result.url)
+                  .end()
+                  .appendTo('#result');
+              }
+            },
+            'jsonp'
+          );
+        });
+      }
+    </script>
+  </body>
+</html>
