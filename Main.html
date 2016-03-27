@@ -33,77 +33,92 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script>
-      var page=0;
+      var page=0; //現在のページ状況
+      var fFlag=0;  //ページ上限フラグ
       function pagedown(){
         if(page>1){
           page-=2;
+          fFlag=0;
           run();
         }else{
           alert("これ以上戻れません。")
         }
       }
       function run() {
-        page++;
-        //ラジオボタンの処理
-        var ran;
-        ran = document.serch.Select1.selectedIndex;
-        ran++;
-        // Geolocation APIの呼び出し
-        navigator.geolocation.getCurrentPosition(function(pos) {
-          // Geolocation APIのコールバック関数
-          // console.log(pos);
-          var lat = pos.coords.latitude;
-          var lng = pos.coords.longitude;
+        
+        if(fFlag==0){        
+          page++;
+          //セレクトボックスの処理
+          var ran = document.serch.Select1.selectedIndex;
+          ran++;
+          // Geolocation APIの呼び出し
+          navigator.geolocation.getCurrentPosition(function(pos) {
+            // Geolocation APIのコールバック関数
+            // console.log(pos);
+            var lat = pos.coords.latitude;
+            var lng = pos.coords.longitude;
           
-          // ぐるなびAPIの呼び出し
-          $.get(
-            'http://api.gnavi.co.jp/ver1/RestSearchAPI/',
-            {
-              keyid: '3204d58b6de6d673790f0c547dbd7c3c',
-              format: 'json',
-              latitude: lat,
-              longitude: lng,
-              range: ran,
-              sort: 1,
-              offset_page: page
-            },
-            function(response) {
-              // ぐるなびAPIのコールバック関数
-              var results = response.rest
-              $('#result').empty();
-              //alert(response.total_hit_count+"件見つかりました件見つかりました。")
-              for (var i = 0; i < results.length; i++) {
-                var result = results[i];
-                /*
-                var image=document.getElementById('tenpo');
-                image.src = result.image_url.shop_image1;
-                image.onload();
-                */
-                //店舗名表示
-                $('<li><a></a></li>')
-                  .find('a')
-                    .text(result.name)
-                    .attr('href', result.url)
-                  .end()
-                  .appendTo('#result');
-                //アクセス表示
-                $('<ul><h4></h4></ul>')
-                  .find('h4')
-                    .text(result.access.station +"より"+ result.access.walk +"分")
-                  .end()
-                  .appendTo('#result');
-              }
-              //ページ数を表示
-              $('#page').empty();
-              $('<ul><h5></h5></ul>')
-                  .find('h5')
-                    .text(response.page_offset + "ページ目を表示しています。")
-                  .end()
-                  .appendTo('#page');
-            },
-            'json'
-          );
-        });
+            // ぐるなびAPIの呼び出し
+            $.get(
+              'http://api.gnavi.co.jp/ver1/RestSearchAPI/',
+              {
+                keyid: '3204d58b6de6d673790f0c547dbd7c3c',
+                format: 'json',
+                latitude: lat,
+                longitude: lng,
+                range: ran,
+                sort: 1,
+                offset_page: page
+              },
+              function(response) {
+                // ぐるなびAPIのコールバック関数
+                var results = response.rest
+                $('#result').empty();
+                //alert(response.total_hit_count+"件見つかりました件見つかりました。")
+                for (var i = 0; i < results.length; i++) {
+                  var result = results[i];
+                  /*
+                  var image=document.getElementById('tenpo');
+                  image.src = result.image_url.shop_image1;
+                  image.onload();
+                  */
+                  //店舗名表示
+                 $('<li><a></a></li>')
+                    .find('a')
+                      .text(result.name)
+                      .attr('href', result.url)
+                    .end()
+                    .appendTo('#result');
+                  //アクセス表示
+                  $('<ul><h4></h4></ul>')
+                    .find('h4')
+                      .text(result.access.station +"より"+ result.access.walk +"分")
+                    .end()
+                    .appendTo('#result');
+                }
+                //ページ情報を表示
+                var pfirst=page*10-9;
+                var plast=page*10;
+                if(response.total_hit_count<plast){
+                  plast=response.total_hit_count;
+                  fFlag=1;
+                }
+                $('#page').empty();
+                $('<ul><h5></h5></ul>')
+                    .find('h5')
+                      .text(response.page_offset + "ページ")
+                    .end()
+                    .appendTo('#page');
+                $('<ul><h5></h5></ul>')
+                    .find('h5')
+                      .text(response.total_hit_count + "件中" + "　　　　" + pfirst + "件から" + plast + "件を表示中")
+                    .end()
+                    .appendTo('#page');
+              },
+              'json'
+            );
+          });
+        }
       }
     </script>
   </body>
