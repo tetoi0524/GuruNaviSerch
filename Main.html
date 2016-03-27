@@ -5,7 +5,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>現在位置からぐるなび検索</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
   </head>
   <body>
     <div class="container">
@@ -24,39 +23,38 @@
       </form><br>
       <button  type="button" onclick="run()">検索</button>
       <hr>
-      <ul id="result">
-      </ul>
+      <ul id="result"></ul>
+      <form id="button">
+      <input type="button" value="前へ" onClick="pagedown()">
+      <input type="button" value="次へ" onClick="run()">
+      <ul id="page"></ul>
+    </form>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script>
+      var page=0;
+      function pagedown(){
+        if(page>1){
+          page-=2;
+          run();
+        }else{
+          alert("これ以上戻れません。")
+        }
+      }
       function run() {
+        page++;
         //ラジオボタンの処理
         var ran;
-        selindex = document.serch.Select1.selectedIndex;
-        switch(selindex){
-          case 0:
-            ran=1;
-            break;
-          case 1:
-            ran=2;
-            break;
-          case 2:
-            ran=3;
-            break;
-          case 3:
-            ran=4;
-            break;
-          case 4:
-            ran=5;
-            break;
-        }
+        ran = document.serch.Select1.selectedIndex;
+        ran++;
         // Geolocation APIの呼び出し
         navigator.geolocation.getCurrentPosition(function(pos) {
           // Geolocation APIのコールバック関数
           // console.log(pos);
           var lat = pos.coords.latitude;
           var lng = pos.coords.longitude;
+          
           // ぐるなびAPIの呼び出し
           $.get(
             'http://api.gnavi.co.jp/ver1/RestSearchAPI/',
@@ -65,23 +63,45 @@
               format: 'json',
               latitude: lat,
               longitude: lng,
-              range: ran
+              range: ran,
+              sort: 1,
+              offset_page: page
             },
             function(response) {
               // ぐるなびAPIのコールバック関数
               var results = response.rest
               $('#result').empty();
+              //alert(response.total_hit_count+"件見つかりました件見つかりました。")
               for (var i = 0; i < results.length; i++) {
                 var result = results[i];
+                /*
+                var image=document.getElementById('tenpo');
+                image.src = result.image_url.shop_image1;
+                image.onload();
+                */
+                //店舗名表示
                 $('<li><a></a></li>')
                   .find('a')
                     .text(result.name)
                     .attr('href', result.url)
                   .end()
                   .appendTo('#result');
+                //アクセス表示
+                $('<ul><h4></h4></ul>')
+                  .find('h4')
+                    .text(result.access.station +"より"+ result.access.walk +"分")
+                  .end()
+                  .appendTo('#result');
               }
+              //ページ数を表示
+              $('#page').empty();
+              $('<ul><h5></h5></ul>')
+                  .find('h5')
+                    .text(response.page_offset + "ページ目を表示しています。")
+                  .end()
+                  .appendTo('#page');
             },
-            'jsonp'
+            'json'
           );
         });
       }
