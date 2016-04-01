@@ -8,7 +8,7 @@
   </head>
   <body>
     <div class="container">
-      <div class="page-header">
+      <div class="header">
         <h1>現在位置からぐるなび検索</h1>
       </div>
       <h3>検索範囲は？<br></h3>
@@ -21,34 +21,40 @@
           <option>3000m</option>
         </select>
       </form><br>
-      <button  type="button" onclick="run()">検索</button>
+      <button  type="button" onclick="start()">検索</button>
       <hr>
       <ul id="result"></ul>
       <form id="button">
-      <input type="button" value="前へ" onClick="pagedown()">
-      <input type="button" value="次へ" onClick="run()">
-      <ul id="page"></ul>
-    </form>
+        <input type="button" value="前へ" onClick="pagedown()">
+          <input type="button" value="次へ" onClick="run()">
+       <ul id="page"></ul>
+      </form>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script>
       var page=0; //現在のページ状況
       var fFlag=0;  //ページ上限フラグ
+      //初期化メソッド
+      function start(){
+        page=0;
+        fFlag=0;
+        run();  
+      }
+      //ページ戻りメソッド
       function pagedown(){
         if(page>1){
           page-=2;
           fFlag=0;
           run();
-        }else{
-          alert("これ以上戻れません。")
         }
       }
+      //本体メソッド
       function run() {
         
         if(fFlag==0){        
           page++;
-          //セレクトボックスの処理
+          //セレクトの処理
           var ran = document.serch.Select1.selectedIndex;
           ran++;
           // Geolocation APIの呼び出し
@@ -74,27 +80,23 @@
                 // ぐるなびAPIのコールバック関数
                 var results = response.rest
                 $('#result').empty();
-                //alert(response.total_hit_count+"件見つかりました件見つかりました。")
                 for (var i = 0; i < results.length; i++) {
                   var result = results[i];
-                  /*
-                  var image=document.getElementById('tenpo');
-                  image.src = result.image_url.shop_image1;
-                  image.onload();
-                  */
+                  var img_url=result.image_url.shop_image1;
                   //店舗名表示
-                 $('<li><a></a></li>')
-                    .find('a')
-                      .text(result.name)
-                      .attr('href', result.url)
-                    .end()
-                    .appendTo('#result');
+                  $('<li><a></a></li>')
+                   .find('a')
+                    .text(result.name)
+                    .attr('href', result.url)
+                   .end()
+                   .appendTo('#result');
                   //アクセス表示
                   $('<ul><h4></h4></ul>')
-                    .find('h4')
-                      .text(result.access.station +"より"+ result.access.walk +"分")
-                    .end()
-                    .appendTo('#result');
+                   .find('h4')
+                    .text(result.access.station +"より"+ result.access.walk +"分")
+                  .end()
+                  .appendTo('#result');
+                  
                 }
                 //ページ情報を表示
                 var pfirst=page*10-9;
@@ -120,6 +122,12 @@
           });
         }
       }
+/*
+残りの修正点
+・レスポンスのないアクセスなどをObjectから--に変える
+・画像の追加
+・店舗詳細ページ
+*/
     </script>
   </body>
 </html>
